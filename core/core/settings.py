@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-hd-q^io_c%4^ayh9#m)wk($hw_kcpde(vtuqne878ogpd#n6%q"
+SECRET_KEY = "django-insecure-3j+#cjk&p+t8lr3a(-(grk5$dnv!_y&ht@d*uaq0i9vd3ql1+5"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,26 +31,33 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = [
+DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
-    "rest_framework.authtoken",
-    "corsheaders",
-    "djoser",
-    "product",
 ]
 
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+PROJECT_APPS = ["accounts", ]
+
+THIRD_PARTY_APPS = [
+    "rest_framework",
+    "drf_yasg",
+    "djoser",
+    "corsheaders",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+]
+
+INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # middleware for cors-headers
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -83,12 +91,8 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "kpis",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -117,7 +121,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Sao_Paulo"
 
 USE_I18N = True
 
@@ -128,10 +132,67 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = "static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "accounts.CustomUser"
+
+
+# EMAIL CONFIG
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "localhost"
+# EMAIL_PORT = "1025"
+# EMAIL_HOST_USER = ""
+# EMAIL_HOST_PASSWORD = ""
+# EMAIL_USE_TLS = False
+
+
+# REST FRAMEWORK CONFIG
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+
+# SIMPLE JWT CONFIG
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+}
+
+# DJOSER CONFIG
+DJOSER = {
+    "LOGIN_FIELD": "email",
+    # "USER_CREATE_PASSWORD_RETYPE": True,
+    # "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
+    # "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
+    # "SEND_CONFIRMATION_EMAIL": True,
+    # "SET_USERNAME_RETYPE": True,
+    # "SET_PASSWORD_RETYPE": True,
+    # "USERNAME_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
+    # "PASSWORD_RESET_CONFIRM_URL": "email/reset/confirm/{uid}/{token}",
+    # "ACTIVATION_URL": "activate/{uid}/{token}",
+    # "SEND_ACTIVATION_EMAIL": True,
+    # "SOCIAL_AUTH_TOKEN_STRATEGY": "djoser.social.token.jwt.TokenStrategy",
+    # "SOCIAL_AUTH_ALLOWED_REDIRECT_URIS": [
+    #     "your redirect url",
+    #     "your redirect url",
+    # ],
+    "SERIALIZERS": {
+        "user_create": "accounts.serializers.UserCreateSerializer",  # custom serializer
+        "user": "djoser.serializers.UserSerializer",
+        "current_user": "djoser.serializers.UserSerializer",
+        "user_delete": "djoser.serializers.UserSerializer",
+    },
+}
+
+# CORS HEADERS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
